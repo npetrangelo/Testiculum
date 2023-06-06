@@ -17,4 +17,4 @@ Currently testing:
 - Make port authors write minimal programs for test suite to interact with
 
 To use this test suite for your RNS implementation, you will need to write small programs
-for the test suite to interact with.
+for the test suite to interact with. Examples can be found in the `tested` directory.
