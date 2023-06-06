@@ -4,6 +4,7 @@ A test suite for the [Reticulum Network Stack](https://github.com/markqvist/reti
 ## Purpose
 Diversity in an ecosystem creates strength, but interoperability remains paramount for network protocols. 
 Testiculum fulfills the need to diversify while maintaining compatibility. It also aids in port development itself.
+It may also be used by future versions of the reference implementation to test against past versions.
 
 This test suite only tests the core of RNS, and does not plan to test network interfaces.
 
