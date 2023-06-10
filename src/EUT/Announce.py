@@ -1,4 +1,5 @@
-# This is an example for what QE/Announce expects to interact with
+# This is an example for what QE/Announce expects to interact with.
+# Implement this small program in your own version of RNS to test it.
 
 import argparse
 import RNS
@@ -43,6 +44,7 @@ def program_setup(configpath):
 
     # We register the announce handler with Reticulum
     RNS.Transport.register_announce_handler(announce_handler)
+    input("Hit enter to close program")
 
 
 # We will need to define an announce handler class that
