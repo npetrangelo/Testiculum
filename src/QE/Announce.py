@@ -15,8 +15,8 @@ class MyTestCase(unittest.TestCase):
         # None, all announces will be passed to the instance.
         # If only some announces are wanted, it can be set to
         # an aspect string.
-        def __init__(self, destination=None):
-            self.aspect_filter = None
+        def __init__(self, aspect_filter=None, destination=None):
+            self.aspect_filter = aspect_filter
             self.destination = destination
             self.received = False
 
@@ -48,17 +48,16 @@ class MyTestCase(unittest.TestCase):
             identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
-            APP_NAME,
-            "announce"
+            APP_NAME
         )
         cls.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.announce_handler = cls.AnnounceHandler()
+        cls.announce_handler = cls.AnnounceHandler(aspect_filter="EUT", destination=cls.destination)
         RNS.Transport.register_announce_handler(cls.announce_handler)
 
     def test_announce_received(self) -> None:
         self.destination.announce()
         # Assert announcement from EUT received
-        time.sleep(5)
+        time.sleep(2)
         self.assertTrue(self.announce_handler.received)
 
 

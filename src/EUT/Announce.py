@@ -27,8 +27,7 @@ def program_setup(configpath):
         identity,
         RNS.Destination.IN,
         RNS.Destination.SINGLE,
-        APP_NAME,
-        "announce"
+        APP_NAME
     )
 
     # We configure the destinations to automatically prove all
@@ -40,7 +39,7 @@ def program_setup(configpath):
     destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
     # We create an announce handler and configure it to announce the EUT node in response
-    announce_handler = AnnounceHandler(destination)
+    announce_handler = AnnounceHandler(aspect_filter="QE", destination=destination)
 
     # We register the announce handler with Reticulum
     RNS.Transport.register_announce_handler(announce_handler)
@@ -55,8 +54,8 @@ class AnnounceHandler:
     # None, all announces will be passed to the instance.
     # If only some announces are wanted, it can be set to
     # an aspect string.
-    def __init__(self, destination=None):
-        self.aspect_filter = None
+    def __init__(self, aspect_filter=None, destination=None):
+        self.aspect_filter = aspect_filter
         self.destination = destination
 
     # This method will be called by Reticulum's Transport
