@@ -1,8 +1,8 @@
 import unittest
 import RNS
-from tested.Announce import AnnounceHandler
+from EUT.Announce import AnnounceHandler
 
-APP_NAME = "tester"
+APP_NAME = "QE"
 configpath = None
 
 
@@ -15,7 +15,7 @@ class MyTestCase(unittest.TestCase):
         identity = RNS.Identity()
 
         # Using the identity we just created, we create one destination
-        # in the "tester" application space.
+        # in the "QE" application space.
         #
         # Destinations are endpoints in Reticulum, that can be addressed
         # and communicated with. Destinations can also announce their
@@ -36,7 +36,7 @@ class MyTestCase(unittest.TestCase):
     def test_something(self) -> None:
         self.assertEqual(True, False)  # add assertion here
         self.destination.announce()
-        # Assert announcement from tested received
+        # Assert announcement from EUT received
         # Assert packet valid
 
 

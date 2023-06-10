@@ -1,9 +1,9 @@
-# This is an example for what tester/Announce expects to interact with
+# This is an example for what QE/Announce expects to interact with
 
 import argparse
 import RNS
 
-APP_NAME = "tested"
+APP_NAME = "EUT"
 
 
 # This initialisation is executed when the program is started
@@ -15,7 +15,7 @@ def program_setup(configpath):
     identity = RNS.Identity()
 
     # Using the identity we just created, we create two destinations
-    # in the "tested.announce" application space.
+    # in the "EUT.announce" application space.
     #
     # Destinations are endpoints in Reticulum, that can be addressed
     # and communicated with. Destinations can also announce their
@@ -38,7 +38,7 @@ def program_setup(configpath):
     # communication was received correctly.
     destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-    # We create an announce handler and configure it to announce the tested node in response
+    # We create an announce handler and configure it to announce the EUT node in response
     announce_handler = AnnounceHandler(destination)
 
     # We register the announce handler with Reticulum
