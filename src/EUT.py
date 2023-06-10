@@ -5,10 +5,11 @@ import argparse
 import RNS
 
 APP_NAME = "EUT"
+configpath = "../config"
 
 
 # This initialisation is executed when the program is started
-def program_setup(configpath):
+def program_setup():
     # We must first initialise Reticulum
     reticulum = RNS.Reticulum(configpath)
 
@@ -16,7 +17,7 @@ def program_setup(configpath):
     identity = RNS.Identity()
 
     # Using the identity we just created, we create two destinations
-    # in the "EUT.announce" application space.
+    # in the "EUT" application space.
     #
     # Destinations are endpoints in Reticulum, that can be addressed
     # and communicated with. Destinations can also announce their
@@ -78,32 +79,5 @@ class AnnounceHandler:
 #### Program Startup #####################################
 ##########################################################
 
-# This part of the program gets run at startup,
-# and parses input from the user, and then starts
-# the desired program mode.
 if __name__ == "__main__":
-    try:
-        parser = argparse.ArgumentParser(
-            description="Reticulum example that demonstrates announces and announce handlers"
-        )
-
-        parser.add_argument(
-            "--config",
-            action="store",
-            default=None,
-            help="path to alternative Reticulum config directory",
-            type=str
-        )
-
-        args = parser.parse_args()
-
-        if args.config:
-            configarg = args.config
-        else:
-            configarg = None
-
-        program_setup(configarg)
-
-    except KeyboardInterrupt:
-        print("")
-        exit()
+    program_setup()

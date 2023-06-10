@@ -3,7 +3,7 @@ import unittest
 import RNS
 
 APP_NAME = "QE"
-configpath = None
+configpath = "../config"
 
 
 class MyTestCase(unittest.TestCase):
