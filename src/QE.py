@@ -29,6 +29,14 @@ class MyTestCase(unittest.TestCase):
             )
             self.received = True
 
+    # This method will be called by Reticulum's Transport
+    # system when a broadcast arrives.
+    def packet_callback(self, data, packet):
+        self.broadcast_received = data.decode("utf-8")
+        RNS.log(
+            "Received broadcast: " + self.broadcast_received
+        )
+
     @classmethod
     def setUpClass(cls) -> None:
         # We must first initialise Reticulum
@@ -52,7 +60,28 @@ class MyTestCase(unittest.TestCase):
         )
         cls.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
         cls.announce_handler = cls.AnnounceHandler(aspect_filter="EUT", destination=cls.destination)
+
+        cls.broadcast_receiver = RNS.Destination(
+            RNS.Identity(),
+            RNS.Destination.IN,
+            RNS.Destination.SINGLE,
+            "broadcast_receiver"
+        )
+        cls.broadcast_receiver.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        cls.broadcast_receiver.set_packet_callback(cls.packet_callback)
+        cls.broadcast_receiver.announce()
+
         RNS.Transport.register_announce_handler(cls.announce_handler)
+
+    def test_broadcast_received(self) -> None:
+        self.broadcast_received = None
+        print("Broadcast test: Enter data to receive back")
+        entered = input("> ")
+        self.broadcast_data = entered.encode("utf-8")
+        packet = RNS.Packet(self.destination, self.broadcast_data)
+        packet.send()
+        time.sleep(2)
+        self.assertEqual(self.broadcast_data, self.broadcast_received)
 
     def test_announce_received(self) -> None:
         self.destination.announce()
