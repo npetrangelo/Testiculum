@@ -56,6 +56,7 @@ class AnnounceHandler:
     # If only some announces are wanted, it can be set to
     # an aspect string.
     def __init__(self, destination=None):
+        self.aspect_filter = None
         self.destination = destination
 
     # This method will be called by Reticulum's Transport
