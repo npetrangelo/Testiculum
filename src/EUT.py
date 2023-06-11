@@ -8,55 +8,58 @@ APP_NAME = "testiculum"
 configpath = "../config"
 
 
-# We must first initialise Reticulum
-reticulum = RNS.Reticulum(configpath)
-inbound = RNS.Destination(
-    None,
-    RNS.Destination.IN,
-    RNS.Destination.PLAIN,
-    APP_NAME,
-    "broadcast"
-)
-
-
 # This initialisation is executed when the program is started
 def program_setup():
-    inbound.set_packet_callback(packet_callback)
-
-    # Randomly create a new identity for our example
-    identity = RNS.Identity()
-
-    # Using the identity we just created, we create two destinations
-    # in the "EUT" application space.
-    #
-    # Destinations are endpoints in Reticulum, that can be addressed
-    # and communicated with. Destinations can also announce their
-    # existence, which will let the network know they are reachable
-    # and automatically create paths to them, from anywhere else
-    # in the network.
-    destination = RNS.Destination(
-        identity,
-        RNS.Destination.IN,
-        RNS.Destination.SINGLE,
-        APP_NAME,
-        "EUT",
-        "single"
-    )
-
-    # We configure the destinations to automatically prove all
-    # packets addressed to it. By doing this, RNS will automatically
-    # generate a proof for each incoming packet and transmit it
-    # back to the sender of that packet. This will let anyone that
-    # tries to communicate with the destination know whether their
-    # communication was received correctly.
-    destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
-
-    # We create an announce handler and configure it to announce the EUT node in response
-    announce_handler = AnnounceHandler(aspect_filter="testiculum.QE.single", destination=destination)
-
-    # We register the announce handler with Reticulum
-    RNS.Transport.register_announce_handler(announce_handler)
+    # We must first initialise Reticulum
+    reticulum = RNS.Reticulum(configpath)
+    broadcaster = Broadcaster()
+    announcer = Announcer(identity=RNS.Identity())
     input("Hit enter to close program")
+
+
+class Broadcaster:
+    def __init__(self):
+        self.inbound = RNS.Destination(
+            None,
+            RNS.Destination.IN,
+            RNS.Destination.PLAIN,
+            APP_NAME,
+            "broadcast"
+        )
+        self.inbound.set_packet_callback(self.packet_callback)
+
+    def packet_callback(self, data, packet):
+        RNS.log(data.decode("utf-8"))
+        broadcast_data = "EUT broadcast".encode("utf-8")
+        broadcast = RNS.Packet(self.inbound, broadcast_data)
+        broadcast.send()
+
+
+class Announcer:
+    def __init__(self, identity=RNS.Identity()):
+        self.destination = RNS.Destination(
+            identity,
+            RNS.Destination.IN,
+            RNS.Destination.SINGLE,
+            APP_NAME,
+            "EUT",
+            "single"
+        )
+
+        # We configure the destinations to automatically prove all
+        # packets addressed to it. By doing this, RNS will automatically
+        # generate a proof for each incoming packet and transmit it
+        # back to the sender of that packet. This will let anyone that
+        # tries to communicate with the destination know whether their
+        # communication was received correctly.
+        self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
+
+        # We create an announce handler and configure it to announce the EUT node in response
+        announce_handler = AnnounceHandler(aspect_filter="testiculum.QE.single", destination=self.destination)
+
+        # We register the announce handler with Reticulum
+        RNS.Transport.register_announce_handler(announce_handler)
+
 
 
 # We will need to define an announce handler class that
@@ -85,13 +88,6 @@ class AnnounceHandler:
             RNS.prettyhexrep(self.destination.hash) +
             " (" + self.destination.name + ")"
         )
-
-
-def packet_callback(data, packet):
-    RNS.log(data.decode("utf-8"))
-    broadcast_data = "EUT broadcast".encode("utf-8")
-    broadcast = RNS.Packet(inbound, broadcast_data)
-    broadcast.send()
 
 
 ##########################################################
