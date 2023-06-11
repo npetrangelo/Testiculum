@@ -52,15 +52,15 @@ class MyTestCase(unittest.TestCase):
         # existence, which will let the network know they are reachable
         # and automatically create paths to them, from anywhere else
         # in the network.
-        cls.inward = RNS.Destination(
+        cls.broadcast = RNS.Destination(
             None,
             RNS.Destination.IN,
             RNS.Destination.PLAIN,
             APP_NAME,
             "broadcast"
         )
-        cls.inward.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.inward.set_packet_callback(cls.packet_callback)
+        cls.broadcast.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        cls.broadcast.set_packet_callback(lambda data, packet: cls.packet_callback(cls, data, packet))
 
         cls.single = RNS.Destination(
             identity,
@@ -78,11 +78,12 @@ class MyTestCase(unittest.TestCase):
     def test_broadcast_received(self) -> None:
         self.broadcast_received = None
         print("Broadcast test: Enter data to receive back")
-        self.broadcast_data = "QE broadcast".encode("utf-8")
-        packet = RNS.Packet(self.inward, self.broadcast_data)
+        QE_broadcast = "QE broadcast".encode("utf-8")
+        packet = RNS.Packet(self.broadcast, QE_broadcast)
         packet.send()
         time.sleep(2)
-        self.assertEqual(self.broadcast_data, self.broadcast_received)
+        EUT_broadcast = "EUT broadcast".encode("utf-8")
+        self.assertEqual(EUT_broadcast, self.broadcast_received)
 
     def test_announce_received(self) -> None:
         self.single.announce()

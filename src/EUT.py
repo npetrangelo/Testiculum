@@ -8,19 +8,20 @@ APP_NAME = "testiculum"
 configpath = "../config"
 
 
+# We must first initialise Reticulum
+reticulum = RNS.Reticulum(configpath)
+inbound = RNS.Destination(
+    None,
+    RNS.Destination.IN,
+    RNS.Destination.PLAIN,
+    APP_NAME,
+    "broadcast"
+)
+
+
 # This initialisation is executed when the program is started
 def program_setup():
-    # We must first initialise Reticulum
-    reticulum = RNS.Reticulum(configpath)
-
-    inbound = RNS.Destination(
-        None,
-        RNS.Destination.IN,
-        RNS.Destination.PLAIN,
-        APP_NAME,
-        "broadcast"
-    )
-    inbound.set_packet_callback(lambda data, packet: RNS.log(data.decode("utf-8")+"\r\n> "))
+    inbound.set_packet_callback(packet_callback)
 
     # Randomly create a new identity for our example
     identity = RNS.Identity()
@@ -84,6 +85,13 @@ class AnnounceHandler:
             RNS.prettyhexrep(self.destination.hash) +
             " (" + self.destination.name + ")"
         )
+
+
+def packet_callback(data, packet):
+    RNS.log(data.decode("utf-8"))
+    broadcast_data = "EUT broadcast".encode("utf-8")
+    broadcast = RNS.Packet(inbound, broadcast_data)
+    broadcast.send()
 
 
 ##########################################################
