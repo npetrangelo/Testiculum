@@ -33,6 +33,7 @@ receive announces and make its own. Broadcasts are prerequisite because all anno
 See the `Announcer` class in `EUT.py` for an example.
 
 ### Currently testing:
+* Broadcast
 * Announce
 
 ### Future Ideas - Not currently implemented
