@@ -7,6 +7,19 @@ configpath = "../config"
 
 
 class MyTestCase(unittest.TestCase):
+    class Data:
+        def __init__(self):
+            self.broadcast_received = False
+            self.announce_received = False
+
+        # This method will be called by Reticulum's Transport
+        # system when a broadcast arrives.
+        def packet_callback(self, data, packet):
+            self.broadcast_received = data.decode("utf-8")
+            RNS.log(
+                "Received broadcast: " + self.broadcast_received
+            )
+
     # We will need to define an announce handler class that
     # Reticulum can message when an announce arrives.
     class AnnounceHandler:
@@ -15,10 +28,10 @@ class MyTestCase(unittest.TestCase):
         # None, all announces will be passed to the instance.
         # If only some announces are wanted, it can be set to
         # an aspect string.
-        def __init__(self, aspect_filter=None, destination=None):
+        def __init__(self, aspect_filter=None, destination=None, data=None):
             self.aspect_filter = aspect_filter
             self.destination = destination
-            self.received = False
+            self.data = MyTestCase.Data() if data is None else data
 
         # This method will be called by Reticulum's Transport
         # system when an announce arrives.
@@ -27,18 +40,11 @@ class MyTestCase(unittest.TestCase):
                 "Received an announce from " +
                 RNS.prettyhexrep(destination_hash)
             )
-            self.received = True
-
-    # This method will be called by Reticulum's Transport
-    # system when a broadcast arrives.
-    def packet_callback(self, data, packet):
-        self.broadcast_received = data.decode("utf-8")
-        RNS.log(
-            "Received broadcast: " + self.broadcast_received
-        )
+            self.data.announce_received = True
 
     @classmethod
     def setUpClass(cls) -> None:
+        cls.data = cls.Data()
         # We must first initialise Reticulum
         cls.reticulum = RNS.Reticulum(configpath)
         # Randomly create a new identity for our example
@@ -60,7 +66,7 @@ class MyTestCase(unittest.TestCase):
             "broadcast"
         )
         cls.broadcast.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.broadcast.set_packet_callback(lambda data, packet: cls.packet_callback(cls, data, packet))
+        cls.broadcast.set_packet_callback(cls.data.packet_callback)
 
         cls.single = RNS.Destination(
             identity,
@@ -72,7 +78,7 @@ class MyTestCase(unittest.TestCase):
         )
         cls.single.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-        cls.announce_handler = cls.AnnounceHandler(aspect_filter="testiculum.EUT.single", destination=cls.single)
+        cls.announce_handler = cls.AnnounceHandler(aspect_filter="testiculum.EUT.single", destination=cls.single, data=cls.data)
         RNS.Transport.register_announce_handler(cls.announce_handler)
 
     def test_broadcast_received(self) -> None:
@@ -82,14 +88,13 @@ class MyTestCase(unittest.TestCase):
         packet = RNS.Packet(self.broadcast, QE_broadcast)
         packet.send()
         time.sleep(2)
-        EUT_broadcast = "EUT broadcast".encode("utf-8")
-        self.assertEqual(EUT_broadcast, self.broadcast_received)
+        self.assertEqual("EUT broadcast", self.data.broadcast_received)
 
     def test_announce_received(self) -> None:
         self.single.announce()
         # Assert announcement from EUT received
         time.sleep(2)
-        self.assertTrue(self.announce_handler.received)
+        self.assertTrue(self.data.announce_received)
 
 
 if __name__ == '__main__':
