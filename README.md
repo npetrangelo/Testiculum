@@ -18,11 +18,13 @@ To test with different interfaces, specify the interface in the config file foll
 
 ## How it works
 
+For all tests, use the app name `testiculum`. This is because Reticulum uses app namespaces to determine which
+destinations are participating in the same app.
+
 #### Broadcast
 The broadcast test works by issuing a broadcast from the QE to the EUT, to which EUT responds with its own broadcast.
-To meet this test, the EUT must automatically retransmit all broadcasts everywhere it can. The EUT does not have to
-implement cryptographic mechanisms at this stage. Pay special attention to the app name and destination aspects;
-they must match.
+To meet this test, the EUT must create a `Plain` destination with the `plain` aspect and respond using that.
+The EUT does not have to implement cryptographic mechanisms at this stage.
 
 #### Announce
 The announce test works by issuing an announce and expecting one in return. To meet this test, the EUT must be able to
