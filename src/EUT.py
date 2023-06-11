@@ -26,6 +26,7 @@ def program_setup():
         RNS.Destination.PLAIN,
         APP_NAME
     )
+    inbound.set_packet_callback(lambda data, packet: RNS.log(data.decode("utf-8")))
 
     # Randomly create a new identity for our example
     identity = RNS.Identity()
