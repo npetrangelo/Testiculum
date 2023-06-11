@@ -16,7 +16,19 @@ is dependent on the features tested before it to work.
 
 To test with different interfaces, specify the interface in the config file following [these instructions](https://reticulum.network/manual/interfaces.html).
 
-#### Currently testing:
+## How it works
+
+#### Broadcast
+The broadcast test works by issuing a broadcast from the QE to the EUT, to which EUT responds with its own broadcast.
+To meet this test, the EUT must automatically retransmit all broadcasts everywhere it can. The EUT does not have to
+implement cryptographic mechanisms at this stage. Pay special attention to the app name and destination aspects;
+they must match.
+
+#### Announce
+The announce test works by issuing an announce and expecting one in return. To meet this test, the EUT must be able to
+receive announces and make its own. Broadcasts are prerequisite because all announces are broadcasted.
+
+### Currently testing:
 * Announce
 
 ### Future Ideas - Not currently implemented
