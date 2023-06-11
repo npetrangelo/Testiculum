@@ -13,6 +13,20 @@ def program_setup():
     # We must first initialise Reticulum
     reticulum = RNS.Reticulum(configpath)
 
+    outbound = RNS.Destination(
+        None,
+        RNS.Destination.OUT,
+        RNS.Destination.PLAIN,
+        APP_NAME
+    )
+
+    inbound = RNS.Destination(
+        None,
+        RNS.Destination.IN,
+        RNS.Destination.PLAIN,
+        APP_NAME
+    )
+
     # Randomly create a new identity for our example
     identity = RNS.Identity()
 
@@ -40,7 +54,7 @@ def program_setup():
     destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
     # We create an announce handler and configure it to announce the EUT node in response
-    announce_handler = AnnounceHandler(aspect_filter="QE", destination=destination)
+    announce_handler = AnnounceHandler(aspect_filter="QE.single", destination=destination)
 
     # We register the announce handler with Reticulum
     RNS.Transport.register_announce_handler(announce_handler)

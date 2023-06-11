@@ -52,25 +52,35 @@ class MyTestCase(unittest.TestCase):
         # existence, which will let the network know they are reachable
         # and automatically create paths to them, from anywhere else
         # in the network.
-        cls.destination = RNS.Destination(
+        cls.outward = RNS.Destination(
+            None,
+            RNS.Destination.OUT,
+            RNS.Destination.PLAIN,
+            APP_NAME,
+            "out"
+        )
+        cls.outward.set_proof_strategy(RNS.Destination.PROVE_ALL)
+
+        cls.inward = RNS.Destination(
+            None,
+            RNS.Destination.IN,
+            RNS.Destination.PLAIN,
+            APP_NAME,
+            "in"
+        )
+        cls.inward.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        cls.inward.set_packet_callback(cls.packet_callback)
+
+        cls.single = RNS.Destination(
             identity,
-            RNS.Destination.IN,
+            RNS.Destination.OUT,
             RNS.Destination.SINGLE,
-            APP_NAME
+            APP_NAME,
+            "single"
         )
-        cls.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.announce_handler = cls.AnnounceHandler(aspect_filter="EUT", destination=cls.destination)
+        cls.single.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-        cls.broadcast_receiver = RNS.Destination(
-            RNS.Identity(),
-            RNS.Destination.IN,
-            RNS.Destination.SINGLE,
-            "broadcast_receiver"
-        )
-        cls.broadcast_receiver.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.broadcast_receiver.set_packet_callback(cls.packet_callback)
-        cls.broadcast_receiver.announce()
-
+        cls.announce_handler = cls.AnnounceHandler(aspect_filter="EUT", destination=cls.single)
         RNS.Transport.register_announce_handler(cls.announce_handler)
 
     def test_broadcast_received(self) -> None:
@@ -78,13 +88,13 @@ class MyTestCase(unittest.TestCase):
         print("Broadcast test: Enter data to receive back")
         entered = input("> ")
         self.broadcast_data = entered.encode("utf-8")
-        packet = RNS.Packet(self.destination, self.broadcast_data)
+        packet = RNS.Packet(self.outward, self.broadcast_data)
         packet.send()
         time.sleep(2)
         self.assertEqual(self.broadcast_data, self.broadcast_received)
 
     def test_announce_received(self) -> None:
-        self.destination.announce()
+        self.single.announce()
         # Assert announcement from EUT received
         time.sleep(2)
         self.assertTrue(self.announce_handler.received)
