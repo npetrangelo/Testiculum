@@ -2,7 +2,7 @@ import time
 import unittest
 import RNS
 
-APP_NAME = "QE"
+APP_NAME = "testiculum"
 configpath = "../config"
 
 
@@ -52,43 +52,34 @@ class MyTestCase(unittest.TestCase):
         # existence, which will let the network know they are reachable
         # and automatically create paths to them, from anywhere else
         # in the network.
-        cls.outward = RNS.Destination(
-            None,
-            RNS.Destination.OUT,
-            RNS.Destination.PLAIN,
-            APP_NAME,
-            "out"
-        )
-        cls.outward.set_proof_strategy(RNS.Destination.PROVE_ALL)
-
         cls.inward = RNS.Destination(
             None,
             RNS.Destination.IN,
             RNS.Destination.PLAIN,
             APP_NAME,
-            "in"
+            "broadcast"
         )
         cls.inward.set_proof_strategy(RNS.Destination.PROVE_ALL)
         cls.inward.set_packet_callback(cls.packet_callback)
 
         cls.single = RNS.Destination(
             identity,
-            RNS.Destination.OUT,
+            RNS.Destination.IN,
             RNS.Destination.SINGLE,
             APP_NAME,
+            "QE",
             "single"
         )
         cls.single.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-        cls.announce_handler = cls.AnnounceHandler(aspect_filter="EUT", destination=cls.single)
+        cls.announce_handler = cls.AnnounceHandler(aspect_filter="testiculum.EUT.single", destination=cls.single)
         RNS.Transport.register_announce_handler(cls.announce_handler)
 
     def test_broadcast_received(self) -> None:
         self.broadcast_received = None
         print("Broadcast test: Enter data to receive back")
-        entered = input("> ")
-        self.broadcast_data = entered.encode("utf-8")
-        packet = RNS.Packet(self.outward, self.broadcast_data)
+        self.broadcast_data = "QE broadcast".encode("utf-8")
+        packet = RNS.Packet(self.inward, self.broadcast_data)
         packet.send()
         time.sleep(2)
         self.assertEqual(self.broadcast_data, self.broadcast_received)
