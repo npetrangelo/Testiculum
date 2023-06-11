@@ -24,11 +24,13 @@ destinations are participating in the same app.
 #### Broadcast
 The broadcast test works by issuing a broadcast from the QE to the EUT, to which EUT responds with its own broadcast.
 To meet this test, the EUT must create a `Plain` destination with the `plain` aspect and respond using that.
+See the `Broadcaster` class in `EUT.py` for an example.
 The EUT does not have to implement cryptographic mechanisms at this stage.
 
 #### Announce
 The announce test works by issuing an announce and expecting one in return. To meet this test, the EUT must be able to
 receive announces and make its own. Broadcasts are prerequisite because all announces are broadcasted.
+See the `Announcer` class in `EUT.py` for an example.
 
 ### Currently testing:
 * Announce
