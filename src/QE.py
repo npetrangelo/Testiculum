@@ -6,95 +6,87 @@ APP_NAME = "testiculum"
 configpath = "../config"
 
 
-class MyTestCase(unittest.TestCase):
-    class Data:
-        def __init__(self):
-            self.broadcast_received = False
-            self.announce_received = False
-
-        # This method will be called by Reticulum's Transport
-        # system when a broadcast arrives.
-        def packet_callback(self, data, packet):
-            self.broadcast_received = data.decode("utf-8")
-            RNS.log(
-                "Received broadcast: " + self.broadcast_received
-            )
-
-    # We will need to define an announce handler class that
-    # Reticulum can message when an announce arrives.
-    class AnnounceHandler:
-        # The initialisation method takes the optional
-        # aspect_filter argument. If aspect_filter is set to
-        # None, all announces will be passed to the instance.
-        # If only some announces are wanted, it can be set to
-        # an aspect string.
-        def __init__(self, aspect_filter=None, destination=None, data=None):
-            self.aspect_filter = aspect_filter
-            self.destination = destination
-            self.data = MyTestCase.Data() if data is None else data
-
-        # This method will be called by Reticulum's Transport
-        # system when an announce arrives.
-        def received_announce(self, destination_hash, announced_identity, app_data):
-            RNS.log(
-                "Received an announce from " +
-                RNS.prettyhexrep(destination_hash)
-            )
-            self.data.announce_received = True
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.data = cls.Data()
-        # We must first initialise Reticulum
-        cls.reticulum = RNS.Reticulum(configpath)
-        # Randomly create a new identity for our example
-        identity = RNS.Identity()
-
-        # Using the identity we just created, we create one destination
-        # in the "QE" application space.
-        #
-        # Destinations are endpoints in Reticulum, that can be addressed
-        # and communicated with. Destinations can also announce their
-        # existence, which will let the network know they are reachable
-        # and automatically create paths to them, from anywhere else
-        # in the network.
-        cls.broadcast = RNS.Destination(
+class Broadcaster:
+    def __init__(self):
+        self.received = None
+        self.destination = RNS.Destination(
             None,
             RNS.Destination.IN,
             RNS.Destination.PLAIN,
             APP_NAME,
             "broadcast"
         )
-        cls.broadcast.set_proof_strategy(RNS.Destination.PROVE_ALL)
-        cls.broadcast.set_packet_callback(cls.data.packet_callback)
+        self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        self.destination.set_packet_callback(self.packet_callback)
 
-        cls.single = RNS.Destination(
+    def broadcast(self, data):
+        packet = RNS.Packet(self.destination, data.encode("utf-8"))
+        packet.send()
+
+    # This method will be called by Reticulum's Transport
+    # system when a broadcast arrives.
+    def packet_callback(self, data, packet):
+        self.received = data.decode("utf-8")
+        RNS.log(
+            "Received broadcast: " + self.received
+        )
+
+    def tearDown(self):
+        RNS.Transport.deregister_destination(self.destination)
+
+
+class Single:
+    def __init__(self, identity=RNS.Identity()):
+        self.received = False
+        self.announced_identity = None
+        self.aspect_filter = "testiculum.in"
+        self.destination = RNS.Destination(
             identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
             APP_NAME,
-            "QE",
-            "single"
+            "in"
         )
-        cls.single.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        RNS.Transport.register_announce_handler(self)
 
-        cls.announce_handler = cls.AnnounceHandler(aspect_filter="testiculum.EUT.single", destination=cls.single, data=cls.data)
-        RNS.Transport.register_announce_handler(cls.announce_handler)
+    def announce(self):
+        self.destination.announce()
+
+    def received_announce(self, destination_hash, announced_identity, app_data):
+        self.received = True
+        self.announced_identity = announced_identity
+        RNS.log(
+            "Received an announce from " +
+            RNS.prettyhexrep(destination_hash)
+        )
+
+    def tearDown(self):
+        RNS.Transport.deregister_destination(self.destination)
+        RNS.Transport.deregister_announce_handler(self)
+
+
+class MyTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        # We must first initialise Reticulum
+        cls.reticulum = RNS.Reticulum(configpath)
+        cls.identity = RNS.Identity()
 
     def test_broadcast_received(self) -> None:
-        self.broadcast_received = None
-        print("Broadcast test: Enter data to receive back")
-        QE_broadcast = "QE broadcast".encode("utf-8")
-        packet = RNS.Packet(self.broadcast, QE_broadcast)
-        packet.send()
+        self.broadcaster = Broadcaster()
+        self.broadcaster.broadcast("QE broadcast")
         time.sleep(2)
-        self.assertEqual("EUT broadcast", self.data.broadcast_received)
+        self.assertEqual("EUT broadcast", self.broadcaster.received)
+        self.broadcaster.tearDown()
 
     def test_announce_received(self) -> None:
+        self.single = Single(self.identity)
         self.single.announce()
         # Assert announcement from EUT received
         time.sleep(2)
-        self.assertTrue(self.data.announce_received)
+        self.assertTrue(self.single.received)
+        self.single.tearDown()
 
 
 if __name__ == '__main__':

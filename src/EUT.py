@@ -37,14 +37,13 @@ class Broadcaster:
 
 class Announcer:
     def __init__(self, identity=RNS.Identity()):
-        self.aspect_filter = "testiculum.QE.single"
+        self.aspect_filter = "testiculum.in"
         self.destination = RNS.Destination(
             identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
             APP_NAME,
-            "EUT",
-            "single"
+            "in"
         )
 
         # We configure the destinations to automatically prove all
