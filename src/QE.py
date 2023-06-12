@@ -37,32 +37,42 @@ class Broadcaster:
 
 class Single:
     def __init__(self, identity=RNS.Identity()):
-        self.received = False
-        self.announced_identity = None
+        self.announce_received = False
         self.aspect_filter = "testiculum.in"
-        self.destination = RNS.Destination(
+        self.inbox = RNS.Destination(
             identity,
             RNS.Destination.IN,
             RNS.Destination.SINGLE,
             APP_NAME,
             "in"
         )
-        self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        self.inbox.set_proof_strategy(RNS.Destination.PROVE_ALL)
+        self.outbox = None
         RNS.Transport.register_announce_handler(self)
 
     def announce(self):
-        self.destination.announce()
+        self.inbox.announce()
 
     def received_announce(self, destination_hash, announced_identity, app_data):
-        self.received = True
-        self.announced_identity = announced_identity
+        self.announce_received = True
+        self.outbox = RNS.Destination(
+            announced_identity,
+            RNS.Destination.OUT,
+            RNS.Destination.SINGLE,
+            APP_NAME,
+            "out"
+        )
         RNS.log(
             "Received an announce from " +
             RNS.prettyhexrep(destination_hash)
         )
 
+    def echo(self):
+        echo_request = RNS.Packet(self.outbox, RNS.Identity.get_random_hash())
+        return echo_request.send()
+
     def tearDown(self):
-        RNS.Transport.deregister_destination(self.destination)
+        RNS.Transport.deregister_destination(self.inbox)
         RNS.Transport.deregister_announce_handler(self)
 
 
@@ -71,22 +81,30 @@ class MyTestCase(unittest.TestCase):
     def setUpClass(cls) -> None:
         # We must first initialise Reticulum
         cls.reticulum = RNS.Reticulum(configpath)
-        cls.identity = RNS.Identity()
+        cls.broadcaster = Broadcaster()
+        cls.single = Single()
+        cls.single.announce()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.broadcaster.tearDown()
+        cls.single.tearDown()
 
     def test_broadcast_received(self) -> None:
-        self.broadcaster = Broadcaster()
         self.broadcaster.broadcast("QE broadcast")
         time.sleep(2)
         self.assertEqual("EUT broadcast", self.broadcaster.received)
         self.broadcaster.tearDown()
 
     def test_announce_received(self) -> None:
-        self.single = Single(self.identity)
-        self.single.announce()
         # Assert announcement from EUT received
         time.sleep(2)
-        self.assertTrue(self.single.received)
-        self.single.tearDown()
+        self.assertTrue(self.single.announce_received)
+
+    def test_echo(self) -> None:
+        time.sleep(2)
+        self.assertIsNotNone(self.single.outbox)
+        self.assertTrue(self.single.echo())
 
 
 if __name__ == '__main__':
