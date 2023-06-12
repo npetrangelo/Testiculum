@@ -30,7 +30,7 @@ The EUT does not have to implement cryptographic mechanisms at this stage.
 #### Announce
 The announce test works by issuing an announce and expecting one in return. To meet this test, the EUT must be able to
 receive announces and make its own. Broadcasts are prerequisite because all announces are broadcasted.
-See the `Announcer` and `AnnounceHandler` classes in `EUT.py` for an example.
+See the `Announcer` class in `EUT.py` for an example.
 
 ### Currently testing:
 * Broadcast

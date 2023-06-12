@@ -37,6 +37,7 @@ class Broadcaster:
 
 class Announcer:
     def __init__(self, identity=RNS.Identity()):
+        self.aspect_filter = "testiculum.QE.single"
         self.destination = RNS.Destination(
             identity,
             RNS.Destination.IN,
@@ -54,25 +55,8 @@ class Announcer:
         # communication was received correctly.
         self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
 
-        # We create an announce handler and configure it to announce the EUT node in response
-        announce_handler = AnnounceHandler(aspect_filter="testiculum.QE.single", destination=self.destination)
-
         # We register the announce handler with Reticulum
-        RNS.Transport.register_announce_handler(announce_handler)
-
-
-
-# We will need to define an announce handler class that
-# Reticulum can message when an announce arrives.
-class AnnounceHandler:
-    # The initialisation method takes the optional
-    # aspect_filter argument. If aspect_filter is set to
-    # None, all announces will be passed to the instance.
-    # If only some announces are wanted, it can be set to
-    # an aspect string.
-    def __init__(self, aspect_filter=None, destination=None):
-        self.aspect_filter = aspect_filter
-        self.destination = destination
+        RNS.Transport.register_announce_handler(self)
 
     # This method will be called by Reticulum's Transport
     # system when an announce arrives.
