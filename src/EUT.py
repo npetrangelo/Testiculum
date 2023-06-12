@@ -13,7 +13,7 @@ def program_setup():
     # We must first initialise Reticulum
     reticulum = RNS.Reticulum(configpath)
     broadcaster = Broadcaster()
-    announcer = Announcer(identity=RNS.Identity())
+    single = Single(identity=RNS.Identity())
     input("Hit enter to close program")
 
 
@@ -35,7 +35,7 @@ class Broadcaster:
         broadcast.send()
 
 
-class Announcer:
+class Single:
     def __init__(self, identity=RNS.Identity()):
         self.aspect_filter = "testiculum.in"
         self.destination = RNS.Destination(

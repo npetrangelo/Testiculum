@@ -30,11 +30,19 @@ The EUT does not have to implement cryptographic mechanisms at this stage.
 #### Announce
 The announce test works by issuing an announce and expecting one in return. To meet this test, the EUT must be able to
 receive announces and make its own. Broadcasts are prerequisite because all announces are broadcasted.
-See the `Announcer` class in `EUT.py` for an example.
+See the `Single` class in `EUT.py` for an example.
+
+#### Proof
+The proof test works by sending a packet to the EUT and verifying that it received the proof back.
+To meet this test, the Single destination in the EUT must set either a `PROVE_ALL` or a `PROVE_APP` strategy.
+
+Note: `PROVE_ALL` is similar to TCP which ensures that packets are received intact, while `PROVE_NONE`
+is analogous to UDP, which does not.
 
 ### Currently testing:
 * Broadcast
 * Announce
+* Proof
 
 ### Future Ideas - Not currently implemented
 - **local testing**: launch many destinations through the running `rnsd` instance, regardless of its source language
