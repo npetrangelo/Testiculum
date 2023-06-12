@@ -1,5 +1,4 @@
-# This is an example for what QE/Announce expects to interact with.
-# Implement this small program in your own version of RNS to test it.
+# This is an example implementation of what QE needs to test your implementation of RNS.
 
 import argparse
 import RNS
@@ -46,19 +45,9 @@ class Single:
             "in"
         )
 
-        # We configure the destinations to automatically prove all
-        # packets addressed to it. By doing this, RNS will automatically
-        # generate a proof for each incoming packet and transmit it
-        # back to the sender of that packet. This will let anyone that
-        # tries to communicate with the destination know whether their
-        # communication was received correctly.
         self.destination.set_proof_strategy(RNS.Destination.PROVE_ALL)
-
-        # We register the announce handler with Reticulum
         RNS.Transport.register_announce_handler(self)
 
-    # This method will be called by Reticulum's Transport
-    # system when an announce arrives.
     def received_announce(self, destination_hash, announced_identity, app_data):
         RNS.log(
             "Received an announce from " +

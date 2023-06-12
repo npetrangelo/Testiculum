@@ -6,6 +6,13 @@ Diversity in an ecosystem creates strength, but interoperability remains paramou
 Testiculum fulfills the need to diversify while maintaining compatibility. It also aids in port development itself.
 It may also be used by future versions of the reference implementation to test against past versions.
 
+## Terminology
+These are the standard terms in interoperability testing.
+
+Qualified Equipment (QE): The equipment known to be compatible. In this case, the reference implementation of RNS.
+
+Equipment under test (EUT): The equipment being tested. In this case, a port of RNS,
+or a future version of the reference implementation.
 
 ## How to use
 To use this test suite, you will need to rewrite `EUT.py` for the RNS implementation you want to test
@@ -15,6 +22,9 @@ It is advised to implement Reticulum's features in the order they are tested her
 is dependent on the features tested before it to work.
 
 To test with different interfaces, specify the interface in the config file following [these instructions](https://reticulum.network/manual/interfaces.html).
+
+To test a transport node, set up a network with the transport node between QE and EUT, and run the tests in QE.
+If all the tests pass, your transport node works.
 
 ## How it works
 
